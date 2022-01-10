@@ -1,20 +1,25 @@
 package main
 
 import (
-	"fmt"
 	"log"
-
-	"github.com/danstanke/simple-get-deviation-app/server/app/randorg"
+	"net/http"
 )
 
-func main() {
-	inty, err := randorg.GetIntegers(5)
+func randomMeanHandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	numberOfRequests := query.Get("requests")
+	numberOfIntegers := query.Get("length")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(numberOfRequests + " " + numberOfIntegers))
+}
 
+func main() {
+	log.Println("Server start...")
+
+	http.HandleFunc("/random/mean", randomMeanHandler)
+
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		panic(err)
-	} else {
-		fmt.Println(inty)
 	}
-	log.Println("Server start...")
-	//http.ListenAndServe(":8080", nil)
 }
