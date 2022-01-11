@@ -1,7 +1,6 @@
 package model
 
 import (
-	"encoding/json"
 	"math"
 	"sort"
 )
@@ -39,7 +38,7 @@ func (data *dataset) countDeviaton() float64 {
 		if i > 0 {
 			//so previous one is compared to current one
 			if (*data)[i-1] != (*data)[i] {
-				lastSquare = pow2(float64(integer) - mean)
+				lastSquare = pow2(mean - float64(integer))
 				squares += lastSquare
 			} else {
 				squares += lastSquare
@@ -50,7 +49,7 @@ func (data *dataset) countDeviaton() float64 {
 		}
 	}
 
-	return math.Sqrt(squares)
+	return math.Sqrt(squares / float64(len(*data)))
 
 }
 
@@ -58,18 +57,23 @@ func pow2(x float64) float64 {
 	return x * x
 }
 
-func getDeviationsInJSON(deviations *[]Deviation) ([]byte, error) {
+func (deviation *Deviation) Count() {
+	*deviation = Deviation{
+		Stddev: deviation.Data.countDeviaton(),
+		Data:   deviation.Data,
+	}
+}
+
+func (deviationsResult *DeviationsResult) Count(deviations *[]Deviation) {
 	var sumOfDatasets dataset
 	for _, deviation := range *deviations {
 		deviation.Stddev = deviation.Data.countDeviaton()
 		sumOfDatasets = append(sumOfDatasets, deviation.Data...)
 	}
 
-	deviationsResult := DeviationsResult{
+	*deviationsResult = DeviationsResult{
 		deviations:  *deviations,
 		allData:     sumOfDatasets,
 		StddevOfSum: sumOfDatasets.countDeviaton(),
 	}
-
-	return json.Marshal(deviationsResult)
 }
