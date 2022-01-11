@@ -5,6 +5,7 @@ import (
 	"sort"
 )
 
+//data for deviation counting
 type dataset []int
 
 type Deviation struct {
@@ -13,15 +14,17 @@ type Deviation struct {
 }
 
 type DeviationsResult struct {
-	deviations  []Deviation `json:"deviations"`
-	allData     dataset     `json:"allData"`
+	Deviations  []Deviation `json:"deviations"`
+	AllData     dataset     `json:"allData"`
 	StddevOfSum float64     `json:"stddevOfSum"`
 }
 
+//sets data for deviation
 func (d *Deviation) SetData(data *[]int) {
 	d.Data = *data
 }
 
+//counts deviation from dataset
 func (data *dataset) countDeviaton() float64 {
 	sort.Ints(*data)
 	sum := 0
@@ -53,10 +56,12 @@ func (data *dataset) countDeviaton() float64 {
 
 }
 
+//pow function to avoid using math.Pow
 func pow2(x float64) float64 {
 	return x * x
 }
 
+//counts deviation for Deviation type
 func (deviation *Deviation) Count() {
 	*deviation = Deviation{
 		Stddev: deviation.Data.countDeviaton(),
@@ -64,6 +69,7 @@ func (deviation *Deviation) Count() {
 	}
 }
 
+//counts all deviations and deviation of sum
 func (deviationsResult *DeviationsResult) Count(deviations *[]Deviation) {
 	var sumOfDatasets dataset
 	for _, deviation := range *deviations {
@@ -72,8 +78,8 @@ func (deviationsResult *DeviationsResult) Count(deviations *[]Deviation) {
 	}
 
 	*deviationsResult = DeviationsResult{
-		deviations:  *deviations,
-		allData:     sumOfDatasets,
+		Deviations:  *deviations,
+		AllData:     sumOfDatasets,
 		StddevOfSum: sumOfDatasets.countDeviaton(),
 	}
 }

@@ -5,4 +5,6 @@ const (
 
 	MinimumValue int = 0
 	MaximumValue int = 10
+
+	RequestsLimit int = 10
 )

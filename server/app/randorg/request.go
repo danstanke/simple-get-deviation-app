@@ -1,14 +1,20 @@
 package randorg
 
 import (
+	"context"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/danstanke/simple-get-deviation-app/server/app/config"
 	"github.com/danstanke/simple-get-deviation-app/server/app/model"
 )
+
+//errors
+const TimeoutReachedError string = "Timeout reached"
 
 //gets request url
 func getRequestURL(numberOfIntegers int, minimumValue int, maximumValue int) (*string, error) {
@@ -39,18 +45,27 @@ func parseResponse(responseBody []byte) ([]int, error) {
 	return numbers, nil
 }
 
-//gets numbers form RandomOrgURL
-func GetIntegers(numberOfIntegers int) ([]int, error) {
+//gets numbers form RandomOrgURL with context timeout
+func GetIntegers(numberOfIntegers *int) ([]int, error) {
 
-	url, err := getRequestURL(numberOfIntegers, config.MinimumValue, config.MaximumValue)
+	url, err := getRequestURL(*numberOfIntegers, config.MinimumValue, config.MaximumValue)
 	if err != nil {
 		return nil, err
 	}
-	response, err := http.Get(*url)
+
+	timeoutContext, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(timeoutContext, http.MethodGet, *url, nil)
 	if err != nil {
 		return nil, err
 	}
-	//read the response body
+
+	response, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, errors.New(TimeoutReachedError)
+	}
+
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
